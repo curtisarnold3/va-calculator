@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What You're Missing Per Month – Free VA Disability Pay Estimator</title>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f4f6f9;color:#1b1b1b;font-size:17px;line-height:1.5}
+.w{max-width:760px;margin:auto;padding:16px}h1{font-size:1.6em;margin:.3em 0;color:#112e51}h2{font-size:1.2em;color:#112e51;margin:.2em 0 .5em}
+.card{background:#fff;border-radius:10px;padding:16px;margin:14px 0;box-shadow:0 1px 4px #0002}
+.disc{background:#fff8e1;border:2px solid #e5a000}.disc li{margin:.3em 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0;padding:6px;border-bottom:1px solid #eee}
+.row input[type=text]{flex:1 1 160px}input,select,button{font-size:16px;padding:8px;border-radius:6px;border:1px solid #999}
+button{background:#112e51;color:#fff;border:0;cursor:pointer}button.x{background:#b50909;padding:6px 10px}
+label{white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.big{font-size:1.9em;font-weight:700;color:#0b6b2e}.res td{padding:6px 4px;border-bottom:1px solid #eee}.res{width:100%;border-collapse:collapse}
+small{color:#555}a{color:#0050d8}
+</style></head><body><div class="w">
+<h1>What You're Missing Per Month</h1>
+<p>A free tool to <b>estimate</b> how much your monthly VA disability pay could change if a rating goes up or a new condition is added.</p>
+
+<div class="card disc"><h2>Please read first</h2><ul>
+<li><b>We are not the VA.</b> This tool is not made by, paid for, or connected to the U.S. Department of Veterans Affairs.</li>
+<li><b>Free help is out there.</b> VA-accredited Veterans Service Organizations (VSOs), claims agents, and attorneys can help you. Many VSOs help for free. Look one up: <a href="https://www.va.gov/ogc/apps/accreditation/index.asp" target="_blank" rel="noopener">VA accreditation search (va.gov/ogc)</a>.</li>
+<li><b>No promises.</b> Nobody can promise what rating the VA will give you. Only the VA decides.</li>
+<li><b>This is just a guess to help you learn.</b> It is not legal advice and not an official VA number.</li>
+<li><b>Your info stays on your device.</b> Nothing you type here is sent or saved anywhere.</li></ul></div>
+
+<div class="card"><h2>1. Your ratings now</h2><small>Add each condition the VA has rated. Check "Both sides" if it is an arm or leg condition and you have it on both sides (like both knees).</small>
+<div id="cur"></div><button onclick="addRow('cur')">+ Add a condition</button></div>
+
+<div class="card"><h2>2. Ratings you might get</h2><small>Add new conditions, or change a number above in your head and enter the full new list here. Tip: list <b>all</b> conditions as you hope they'll be rated.</small>
+<div><label><input type="checkbox" id="copy" checked onchange="calc()"> Start with my current ratings, then add these</label></div>
+<div id="pot"></div><button onclick="addRow('pot')">+ Add a condition</button></div>
+
+<div class="card"><h2>3. Your family</h2><small>Family only changes pay at 30% or higher.</small><div class="grid">
+<label>Married (spouse)? <select id="sp" onchange="calc()"><option value="0">No</option><option value="1">Yes</option></select></label>
+<label>Spouse gets Aid &amp; Attendance? <select id="aa" onchange="calc()"><option value="0">No</option><option value="1">Yes</option></select></label>
+<label>Kids under 18: <input id="k18" type="number" min="0" value="0" style="width:70px" oninput="calc()"></label>
+<label>Kids 18–23 in school: <input id="ksc" type="number" min="0" value="0" style="width:70px" oninput="calc()"></label>
+<label>Parents who depend on you: <select id="par" onchange="calc()"><option>0</option><option>1</option><option>2</option></select></label></div></div>
+
+<div class="card"><h2>Your estimate</h2><table class="res" id="out"></table></div>
+
+<div class="card"><h2>How the math works</h2><small>The VA does not add ratings together. It uses "whole person" math (38 CFR 4.25): start with the biggest rating, then each next rating only counts against the part of you that is still "able." The result is rounded to the nearest 10 (85 rounds up to 90; 84 rounds down to 80). If you have arm or leg problems on both sides, the VA combines those first and adds 10% more (the "bilateral factor," 38 CFR 4.26).<br><br>
+Pay amounts: official VA 2026 rates, <b>effective December 1, 2025</b>, from <a href="https://www.va.gov/disability/compensation-rates/veteran-rates/" target="_blank" rel="noopener">va.gov/disability/compensation-rates/veteran-rates/</a> (checked Oct 13, 2026). Special monthly compensation (SMC) and other extras are not included.</small></div>
+</div>
+<script>
+/* SOURCE: https://www.va.gov/disability/compensation-rates/veteran-rates/
+   "Effective December 1, 2025" (2026 rates), page last updated Dec 2, 2025; verified Oct 13, 2026.
+   Columns: [alone, spouse, spouse+1par, spouse+2par, 1par, 2par, child, child+spouse, child+sp+1par, child+sp+2par, child+1par, child+2par, addChildU18, addChildSchool, spouseAA] */
+var R10=180.42,R20=356.66,T={
+30:[552.47,617.47,669.47,721.47,604.47,656.47,596.47,666.47,718.47,770.47,648.47,700.47,32,105,61],
+40:[795.84,882.84,952.84,1022.84,865.84,935.84,853.84,947.84,1017.84,1087.84,923.84,993.84,43,140,81],
+50:[1132.90,1241.90,1329.90,1417.90,1220.90,1308.90,1205.90,1322.90,1410.90,1498.90,1293.90,1381.90,54,176,101],
+60:[1435.02,1566.02,1671.02,1776.02,1540.02,1645.02,1523.02,1663.02,1768.02,1873.02,1628.02,1733.02,65,211,121],
+70:[1808.45,1961.45,2084.45,2207.45,1931.45,2054.45,1910.45,2074.45,2197.45,2320.45,2033.45,2156.45,76,246,141],
+80:[2102.15,2277.15,2417.15,2557.15,2242.15,2382.15,2219.15,2406.15,2546.15,2686.15,2359.15,2499.15,87,281,161],
+90:[2362.30,2559.30,2717.30,2875.30,2520.30,2678.30,2494.30,2704.30,2862.30,3020.30,2652.30,2810.30,98,317,181],
+100:[3938.58,4158.17,4334.41,4510.65,4114.82,4291.06,4085.43,4318.99,4495.23,4671.47,4261.67,4437.91,109.11,352.45,201.41]};
+// Core math, shared by index.html (inlined) and test.js
+function combine(list){ // 38 CFR 4.25 Combined Ratings Table: sort high->low, round each step to whole number
+  var r=list.filter(function(x){return x>0}).sort(function(a,b){return b-a}),v=0;
+  r.forEach(function(x){v=Math.round(v+x*(100-v)/100)});return v;}
+function combineAll(items){ // items: [{pct,bilateral}]; 4.26 bilateral factor
+  var bi=items.filter(function(i){return i.bilateral}).map(function(i){return +i.pct});
+  var other=items.filter(function(i){return !i.bilateral}).map(function(i){return +i.pct});
+  var bf=0,biVal=0;
+  if(bi.length>=2){biVal=combine(bi);bf=Math.round(biVal*0.1*10)/10;other.push(Math.round(biVal+bf));}
+  else other=other.concat(bi);
+  var exact=combine(other),rounded=Math.min(100,Math.round(exact/10)*10);
+  return {exact:exact,rounded:rounded,bilateralValue:biVal,bilateralFactor:bf,toNext:rounded>=100?0:rounded+5-exact};
+}
+if(typeof module!=='undefined')module.exports={combine:combine,combineAll:combineAll};
+
+function pay(r,f){if(r<10)return 0;if(r==10)return R10;if(r==20)return R20;var t=T[r],k=f.k18+f.ksc,p=f.par,i;
+ if(k>0){i=f.sp?(7+p):(p?9+p:6);}else{i=f.sp?(1+p):(p?3+p:0);}
+ var v=t[i];if(k>0){var extra18=f.k18,extraS=f.ksc;if(extra18>0)extra18--;else extraS--;v+=extra18*t[12]+extraS*t[13];}
+ if(f.sp&&f.aa)v+=t[14];return v;}
+function $(id){return document.getElementById(id)}
+function addRow(w,name,pct,bi){var d=document.createElement('div');d.className='row';
+ var o='';for(var i=0;i<=100;i+=10)o+='<option'+(i==(pct||0)?' selected':'')+'>'+i+'</option>';
+ d.innerHTML='<input type="text" placeholder="Condition (example: left knee)" value="'+(name||'')+'"><select oninput="calc()" aria-label="percent">'+o+'</select>%<label><input type="checkbox" onchange="calc()"'+(bi?' checked':'')+'> Both sides (arm/leg)</label><button class="x" aria-label="remove" onclick="this.parentNode.remove();calc()">X</button>';
+ $(w).appendChild(d);calc();}
+function read(w){return [].map.call($(w).children,function(d){return{pct:+d.querySelector('select').value,bilateral:d.querySelector('input[type=checkbox]').checked}})}
+function m(x){return '$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function desc(r){return '<b>'+r.rounded+'%</b> <small>(exact math: '+r.exact+(r.bilateralFactor?', includes bilateral bonus of '+r.bilateralFactor:'')+(r.rounded<100?'; '+r.toNext+' more point'+(r.toNext==1?'':'s')+' to round up to '+(r.rounded+10)+'%':'')+')</small>'}
+function calc(){if(!$('out'))return;var f={sp:+$('sp').value,aa:+$('aa').value,k18:Math.max(0,+$('k18').value|0),ksc:Math.max(0,+$('ksc').value|0),par:+$('par').value};
+ var c=combineAll(read('cur')),pl=read('pot');if($('copy').checked)pl=read('cur').concat(pl);var p=combineAll(pl);
+ var a=pay(c.rounded,f),b=pay(p.rounded,f),d=b-a;
+ $('out').innerHTML='<tr><td>Your rating now</td><td>'+desc(c)+'</td></tr><tr><td>Possible new rating</td><td>'+desc(p)+'</td></tr><tr><td>Pay now (per month)</td><td>'+m(a)+'</td></tr><tr><td>Possible pay (per month)</td><td>'+m(b)+'</td></tr><tr><td><b>What you may be missing</b></td><td><span class="big">'+m(d)+'</span> /month<br><b>'+m(d*12)+'</b> /year</td></tr><tr><td colspan=2><small>Estimate only. Not a promise. The VA makes the final decision.</small></td></tr>';}
+var q=new URLSearchParams(location.search);
+if(q.get('demo')){addRow('cur','PTSD',50);addRow('cur','Left knee',20,1);addRow('cur','Right knee',10,1);addRow('pot','Sleep apnea',50);$('sp').value=1;$('k18').value=2;}
+else{addRow('cur');addRow('pot');}calc();
+</script></body></html>

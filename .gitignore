@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+.env
+*cfile*
+*c-file*
+veteran-data/
